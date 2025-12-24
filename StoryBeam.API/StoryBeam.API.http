@@ -1,0 +1,6 @@
+@StoryBeam.API_HostAddress = http://localhost:5216
+
+GET {{StoryBeam.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
