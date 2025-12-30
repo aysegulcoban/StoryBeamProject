@@ -40,6 +40,10 @@ app.UseCors("AllowReactApp");
 
 app.UseHttpsRedirection();
 
+//================= EKLENDİ ====================
+app.MapControllers();
+//================= EKLENDİ ====================
+
 var summaries = new[]
 {
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"

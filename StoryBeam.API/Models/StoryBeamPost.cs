@@ -22,6 +22,8 @@ namespace StoryBeam.API.Models
 
         public DateTime CreatedAt {get;set;} = DateTime.UtcNow;
         public bool isPublished {get;set;} = false;
+
+        public string Category {get;set;} = String.Empty;
     }
 }
 
