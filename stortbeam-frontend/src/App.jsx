@@ -6,6 +6,7 @@ import WeatherCard from "./components/WeatherCard"
 import ErrorMessage from "./components/ErrorMessage"
 import AddStoryBeamPost from "./AddStoryBeamPost"
 import {useNavigate} from "react-router-dom"    // Yönlendirme için 
+import { useTheme } from "./ThemeContext"
 
 function App(){
   const [weatherData, setWeatherData] = useState([])
@@ -13,7 +14,8 @@ function App(){
   const [error, setError] = useState(null)
 
   // Tema modu için (dark/light) state ekledim:
-  const[isDarkMode,setIsDarkMode] = useState(false)
+  const { isDarkMode, toggleTheme } = useTheme()
+  console.log('App.jsx - isDarkMode:', isDarkMode)
 
   // Yönlendirme için. Main.jsx dosyasına baktığımız zaman yönlendirmenin nasıl yapıldığını görebiliriz.
   const navigate = useNavigate();
@@ -66,9 +68,9 @@ function App(){
     }
   }
 
-  const onEdit = async() =>
+  const onEdit = (item) =>
   {
-    console.log("Düzenle butonuna tıklandı")
+    navigate(`/edit/${item.id}`, { state: { post: item } });
   }
 
   const onDelete = async(id) =>
@@ -155,7 +157,7 @@ return (
             {/* SAĞ: AKSİYONLAR */}
             <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
                 <button 
-                    onClick={() => setIsDarkMode(!isDarkMode)}
+                    onClick={toggleTheme}
                     style={{
                         padding: '12px 20px', // Butonları da biraz etli yaptık
                         borderRadius: '10px',

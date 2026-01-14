@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
 
 function WeatherCard({ weatherData, isDarkMode, onEdit, onDelete,addContext,selectCategory }) {
+  const navigate = useNavigate();
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -164,7 +169,7 @@ function WeatherCard({ weatherData, isDarkMode, onEdit, onDelete,addContext,sele
                 </div>
 
                 {/* Başlık */}
-                <h3 className="article-title" onClick={() => setSelectedItem(item)}>
+                <h3 className="article-title" onClick={() => navigate(`/post/${item.id}`, { state: { post: item } })}>
                   {item.title}
                 </h3>
                 
@@ -180,12 +185,13 @@ function WeatherCard({ weatherData, isDarkMode, onEdit, onDelete,addContext,sele
                     textAlign:'left',
                     marginLeft:'20px' 
                   }}
-                  dangerouslySetInnerHTML={{
-                    __html: item.content.length > 220 
-                      ? item.content.substring(0, 420) + '...' 
-                      : item.content
-                  }}
-                />
+                >
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}
+                                 rehypePlugins={[rehypeRaw]}
+                  >
+                    {item.content.length > 420 ? item.content.substring(0, 420) + '...' : item.content}
+                  </ReactMarkdown>
+                </div>
 
                 {/* Aksiyon Butonları */}
                 <div style={{ display: 'flex' }}>
@@ -195,7 +201,7 @@ function WeatherCard({ weatherData, isDarkMode, onEdit, onDelete,addContext,sele
               </div>
 
               {/* Görsel Alanı (Sağda Sabit) */}
-              <div onClick={() => setSelectedItem(item)} style={{ 
+              <div onClick={() => navigate(`/post/${item.id}`, { state: { post: item } })} style={{
                 width: '260px', height: '170px', 
                 backgroundColor: theme.border, 
                 borderRadius: '8px', flexShrink: 0, cursor: 'pointer',
@@ -311,44 +317,6 @@ function WeatherCard({ weatherData, isDarkMode, onEdit, onDelete,addContext,sele
 </aside>
 
       </div>
-
-      {/* OKUMA MODAL (Full Screen) */}
-      {selectedItem && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: isDarkMode ? 'rgba(11, 17, 32, 0.95)' : 'rgba(255, 255, 255, 0.98)',
-          zIndex: 1000, overflowY: 'auto', display: 'flex', justifyContent: 'center'
-        }}>
-          <div style={{ width: '100%', maxWidth: '1500px', padding: '80px 20px', position: 'relative' }}>
-             <button 
-                onClick={() => setSelectedItem(null)} 
-                style={{ 
-                  position: 'fixed', top: '30px', right: '30px', 
-                  width: '40px', height: '40px', borderRadius: '50%', border: `1px solid ${theme.border}`,
-                  background: theme.bg, color: theme.text, fontSize: '20px', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }}>
-                ✕
-             </button>
-             
-             <div style={{ color: theme.accent, fontWeight: '700', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '1px', fontSize: '14px' }}>
-                {selectedItem.isPublished ? 'Yayında' : 'Taslak'}
-             </div>
-             <h1 style={{ fontSize: '48px', fontWeight: '900', lineHeight: '1.1', marginBottom: '30px' }}>{selectedItem.title}</h1>
-             <div 
-              style={{ 
-                fontSize: '20px', 
-                lineHeight: '1.8', 
-                fontFamily: 'Merriweather, serif', 
-                color: theme.text,
-                //backgroundImage: `url(https://picsum.photos/seed/${selectedItem.id}/300/200)`
-              }}
-              dangerouslySetInnerHTML={{ __html: selectedItem.content }}
-              
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }

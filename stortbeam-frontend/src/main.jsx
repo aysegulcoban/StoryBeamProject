@@ -7,16 +7,17 @@ import ReactDOM from 'react-dom/client'
 // 3. Route: Her bir path tanımlaması
 import { BrowserRouter, Routes, Route} from 'react-router-dom'
 import App from './App.jsx'
-
-// Yen iyazı ekle butonuna tıklanılınca açılacak olan sayfa
-import AddStoryBeamPost from './AddStoryBeamPost.jsx'
+import PostDetail from './PostDetail.jsx'
+import PostForm from './PostForm.jsx'
 import './index.css'
+import { ThemeProvider } from './ThemeContext.jsx'
 
 // React uygulamasını başlatıyoruz
 // HTML'deki 'root' id'li div'e React'i yerleştiriyoruz
 ReactDOM.createRoot(document.getElementById('root')).render(
   // StrictMode: Hataları daha iyi görmek için React'in geliştirme modu
   <React.StrictMode>
+    <ThemeProvider>
     
     {/* BrowserRouter: URL değişikliklerini takip eden ana konteyner */}
     <BrowserRouter>
@@ -24,19 +25,22 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       {/* Routes: Tüm yolları (route) içinde barındıran konteyner */}
       <Routes>
         
-        {/* İlk Route: Ana sayfa */}
-        {/* path="/": Kullanıcı http://localhost:5173/ adresine gittiğinde */}
-        {/* element={<App />}: App component'ini göster */}
+        {/* Ana sayfa */}
         <Route path="/" element={<App />} />
         
-        {/* İkinci Route: Yeni yazı sayfası */}
-        {/* path="/yeni-sayfa": Kullanıcı http://localhost:5173/yeni-sayfa adresine gittiğinde */}
-        {/* element={<AddStoryBeamPost />}: AddStoryBeamPost component'ini göster */}
-        <Route path="/addContent" element={<AddStoryBeamPost />} />
+        {/* Yeni yazı ekleme sayfası */}
+        <Route path="/addContent" element={<PostForm />} />
+        
+        {/* Yazı düzenleme sayfası */}
+        <Route path="/edit/:id" element={<PostForm />} />
+        
+        {/* Yazı okuma sayfası */}
+        <Route path="/post/:id" element={<PostDetail />} />
         
       </Routes>
       
     </BrowserRouter>
+    </ThemeProvider>
     
   </React.StrictMode>,
 )

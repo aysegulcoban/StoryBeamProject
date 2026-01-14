@@ -4,30 +4,36 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';    
 import rehypeRaw from 'rehype-raw';     
 import './css/AddStoryBeamPost.css';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from './ThemeContext';
 
-function AddStoryBeamPost() {
-  // Form State'leri
+function PostForm() {
   const { isDarkMode, toggleTheme } = useTheme();
-  console.log('AddStoryBeamPost.jsx - isDarkMode:', isDarkMode)
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState(""); // Artık düz string (markdown) tutuyor
-  const [author, setAuthor] = useState("");
-  const [activeTab, setActiveTab] = useState("write"); // 'write' veya 'preview'
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Düzenleme modunda gelen post verisi
+  const postToEdit = location.state?.post;
+  const isEditMode = !!postToEdit; // post varsa edit mode
+  
+  // Form State'leri
+  const [title, setTitle] = useState(postToEdit?.title || "");
+  const [content, setContent] = useState(postToEdit?.content || "");
+  const [author, setAuthor] = useState(postToEdit?.author || "");
+  const [activeTab, setActiveTab] = useState("write");
 
   const textareaRef = useRef(null);
   
   // Kategori Mantığı
   const [categories, setCategories] = useState(['Teknoloji', 'React', 'Tasarım', 'Hayat']);
-  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState(
+    postToEdit?.category ? postToEdit.category.split(',') : []
+  );
   const [newCategory, setNewCategory] = useState("");
   const [isAddingNewCategory, setIsAddingNewCategory] = useState(false);
 
   // Yayınla / Taslak
-  const [isPublished, setIsPublished] = useState(false);
-
-  const navigate = useNavigate();
+  const [isPublished, setIsPublished] = useState(postToEdit?.isPublished || false);
 
   // Tema Renkleri
   const theme = {
@@ -37,8 +43,8 @@ function AddStoryBeamPost() {
     border: isDarkMode ? '#1e293b' : '#e2e8f0',
     accent: '#0ea5e9',
     toolbarBg: isDarkMode ? '#1e293b' : '#f8fafc',
-    inputBg: isDarkMode ? '#0B1120' : '#ffffff', // Textarea arkaplanı
-    previewBg: isDarkMode ? '#111827' : '#ffffff', // Önizleme arkaplanı
+    inputBg: isDarkMode ? '#0B1120' : '#ffffff',
+    previewBg: isDarkMode ? '#111827' : '#ffffff',
     sidebarBg: isDarkMode ? '#111827' : '#f8fafc',
     codeBg: isDarkMode ? '#1e293b' : '#f1f5f9',
   };
@@ -51,7 +57,6 @@ function AddStoryBeamPost() {
     }
   };
 
-  // Markdown Ekleme Fonksiyonu
   const insertMarkdown = (prefix, suffix = "") => {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -68,7 +73,6 @@ function AddStoryBeamPost() {
     
     setContent(newText);
     
-    // İmleci tekrar yerine koy veya seçimi koru
     setTimeout(() => {
         textarea.focus();
         textarea.setSelectionRange(start + prefix.length, end + prefix.length);
@@ -78,15 +82,6 @@ function AddStoryBeamPost() {
   const handleSave = async(e) => {
     e.preventDefault();
     
-    const newPost = {
-      title,
-      content, // Markdown içeriği direkt gönderiyoruz
-      author,
-      categories: selectedCategories,
-      isPublished,
-      createdAt: new Date().toISOString()
-    };
-
     if (!title.trim() || !content.trim() || !author.trim()) {
         alert("Başlık, İçerik ve Yazar alanları boş olamaz.");
         return;
@@ -95,15 +90,29 @@ function AddStoryBeamPost() {
     const categoriesForDB = selectedCategories.join(",");
     
     try {
-        const response = await axios.post('http://localhost:5216/api/StoryBeam', {
-            title: newPost.title,
-            content: newPost.content,
-            author: newPost.author,
-            isPublished: newPost.isPublished,
-            category: categoriesForDB
-        });
-        console.log("response: ", response);
-        alert("İçerik başarıyla eklendi");
+        if (isEditMode) {
+            // DÜZENLEME - PUT isteği
+            await axios.put(`http://localhost:5216/api/StoryBeam/${postToEdit.id}`, {
+                id: postToEdit.id,
+                title: title,
+                content: content,
+                author: author,
+                isPublished: isPublished,
+                category: categoriesForDB,
+                createdAt: postToEdit.createdAt
+            });
+            alert("İçerik başarıyla güncellendi");
+        } else {
+            // YENİ EKLEME - POST isteği
+            await axios.post('http://localhost:5216/api/StoryBeam', {
+                title: title,
+                content: content,
+                author: author,
+                isPublished: isPublished,
+                category: categoriesForDB
+            });
+            alert("İçerik başarıyla eklendi");
+        }
         navigate('/');
     } catch (error) {
         console.error("Hata:", error);
@@ -119,6 +128,9 @@ function AddStoryBeamPost() {
         <div className="container-fluid" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h1 style={{ fontSize: '28px', fontWeight: 'bold', margin: 0 }}>
             StoryBeam <span style={{ color: theme.accent }}>✨</span>
+            <span style={{ fontSize: '14px', color: theme.muted, marginLeft: '15px' }}>
+              {isEditMode ? '/ Düzenle' : '/ Yeni Yazı'}
+            </span>
           </h1>
           
           <button 
@@ -163,7 +175,7 @@ function AddStoryBeamPost() {
               style={{ color: theme.muted, borderBottomColor: theme.border }}
             />
 
-            {/* TAB MENU (Write / Preview) */}
+            {/* TAB MENU */}
             <div style={{ display: 'flex', gap: '1px', marginTop: '20px', borderBottom: `1px solid ${theme.border}` }}>
                 <button
                     type="button"
@@ -213,7 +225,7 @@ function AddStoryBeamPost() {
                 minHeight: '400px'
             }}>
                 
-                {/* TOOLBAR (Sadece Write modunda görünür) */}
+                {/* TOOLBAR */}
                 {activeTab === 'write' && (
                     <div className="format-toolbar" style={{ backgroundColor: theme.toolbarBg, borderColor: theme.border, padding: '8px', borderBottom: `1px solid ${theme.border}` }}>
                         <button type="button" className="format-btn" onClick={() => insertMarkdown('**', '**')} title="Kalın"><b>B</b></button>
@@ -252,19 +264,18 @@ function AddStoryBeamPost() {
                             border: 'none',
                             outline: 'none',
                             resize: 'vertical',
-                            fontFamily: 'Consolas, Monaco, "Courier New", monospace', // Kod fontu yazım için daha iyidir
+                            fontFamily: 'Consolas, Monaco, "Courier New", monospace',
                             fontSize: '15px',
                             lineHeight: '1.6'
                         }}
                     />
                 ) : (
-                    /* PREVIEW MODE: REACT MARKDOWN */
+                    /* PREVIEW MODE */
                     <div className="markdown-preview" style={{ padding: '20px', backgroundColor: theme.previewBg, color: theme.text, minHeight: '400px' }}>
                         <ReactMarkdown 
                             remarkPlugins={[remarkGfm]}
                             rehypePlugins={[rehypeRaw]}
                             components={{
-                                // Resimlerin taşmasını engellemek için özel stil
                                 img: ({node, ...props}) => <img style={{maxWidth: '100%', borderRadius: '8px'}} {...props} />,
                                 code: ({node, inline, className, children, ...props}) => {
                                     return (
@@ -286,7 +297,7 @@ function AddStoryBeamPost() {
             </div>
           </section>
 
-          {/* SAĞ KOLON: SIDEBAR (Değişmedi, sadece context'e uygun stiller) */}
+          {/* SAĞ KOLON: SIDEBAR */}
           <aside>
             <div style={{ position: 'sticky', top: '40px', display: 'flex', flexDirection: 'column', gap: '30px' }}>
               
@@ -300,7 +311,7 @@ function AddStoryBeamPost() {
                   boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                 }}
               >
-                {isPublished ? 'YAYINLA' : 'TASLAĞI KAYDET'}
+                {isEditMode ? 'GÜNCELLE' : (isPublished ? 'YAYINLA' : 'TASLAĞI KAYDET')}
               </button>
 
               <div style={{ padding: '20px', border: `1px solid ${theme.border}`, borderRadius: '12px', backgroundColor: theme.sidebarBg }}>
@@ -316,7 +327,7 @@ function AddStoryBeamPost() {
                  </label>
               </div>
 
-              {/* Kategori Bölümü (Değişiklik yok, aynen korundu) */}
+              {/* Kategori Bölümü */}
               <div style={{ padding: '20px', border: `1px solid ${theme.border}`, borderRadius: '12px', backgroundColor: theme.sidebarBg }}>
                  <h4 style={{ fontSize: '12px', fontWeight: 'bold', color: theme.muted, textTransform: 'uppercase', marginBottom: '15px' }}>
                    Kategoriler ({selectedCategories.length} seçili)
@@ -358,6 +369,4 @@ function AddStoryBeamPost() {
   );
 }
 
-
-
-export default AddStoryBeamPost;
+export default PostForm;

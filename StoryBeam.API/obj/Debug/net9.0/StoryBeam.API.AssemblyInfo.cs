@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("StoryBeam.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+edaa526dc7c92ebc01654047f954c29234a67f7b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b7f70446cecb97671e962a346309402f5c386f80")]
 [assembly: System.Reflection.AssemblyProductAttribute("StoryBeam.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("StoryBeam.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
